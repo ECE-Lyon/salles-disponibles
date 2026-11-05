@@ -1,0 +1,9 @@
+{
+  "name": "salles-citadelle",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Affichage des salles disponibles du campus Citadelle",
+  "engines": { "node": ">=18" },
+  "scripts": { "start": "node server.js" }
+}
