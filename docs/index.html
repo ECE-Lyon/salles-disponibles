@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Télécharger Salles Citadelle</title>
+<meta name="description" content="Application Windows et Mac qui affiche les salles disponibles du campus Citadelle.">
+<link rel="icon" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=Barlow:wght@500;600;700&display=swap">
+<style>
+:root {
+  color-scheme: dark;
+  --ink: #170b26; --trait: #3a2b52; --texte: #f4f2fb; --doux: #b5b1cc;
+  --libre: #0f8f5c; --libre-fort: #0c7a4e; --surface: #21143a;
+  --titre: "Barlow Semi Condensed", "Arial Narrow", Arial, sans-serif;
+  --corps: "Barlow", "Segoe UI", Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--ink); color: var(--texte); font: 500 1.05rem/1.55 var(--corps); }
+main { max-width: 46rem; margin: 0 auto; padding: 3rem max(16px, env(safe-area-inset-right, 0px)) 3rem max(16px, env(safe-area-inset-left, 0px)); display: grid; gap: 2.25rem; }
+.tete { display: flex; align-items: center; gap: 1.25rem; }
+.tete img { width: 5.5rem; height: 5.5rem; flex: none; }
+h1 { margin: 0; font: 700 2.6rem/1.05 var(--titre); text-wrap: balance; }
+.tete p { margin: .35rem 0 0; color: var(--doux); }
+.choix { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; }
+.bouton { display: block; padding: 1.1rem 1.25rem; border: 1px solid var(--trait); border-radius: .5rem; background: var(--surface); color: var(--texte); text-decoration: none; }
+.bouton b { display: block; font: 700 1.45rem/1.2 var(--titre); }
+.bouton span { color: var(--doux); font-size: .95rem; }
+.bouton:hover { border-color: var(--doux); }
+.bouton:focus-visible { outline: 3px solid var(--texte); outline-offset: 2px; }
+.bouton.conseille { background: var(--libre); border-color: var(--libre); }
+.bouton.conseille:hover { background: var(--libre-fort); }
+.bouton.conseille span { color: var(--texte); }
+.version { margin: -1.25rem 0 0; color: var(--doux); font-size: .95rem; font-variant-numeric: tabular-nums; }
+h2 { margin: 0 0 .5rem; font: 700 1.5rem/1.2 var(--titre); }
+section > p { margin: 0 0 1rem; }
+h3 { margin: 1rem 0 .25rem; font-size: 1.05rem; font-weight: 700; }
+ol { margin: 0; padding-left: 1.3rem; }
+code { font-size: .9em; background: var(--surface); padding: .1rem .35rem; border-radius: .2rem; overflow-wrap: anywhere; }
+a { color: var(--texte); }
+footer { border-top: 1px solid var(--trait); padding-top: 1rem; color: var(--doux); font-size: .95rem; }
+</style>
+</head>
+<body>
+<main>
+  <header class="tete">
+    <img src="icon.png" alt="">
+    <div>
+      <h1>Salles Citadelle</h1>
+      <p>Les salles libres du campus, étage par étage, sur les 4 prochaines heures.</p>
+    </div>
+  </header>
+
+  <div class="choix">
+    <a class="bouton" id="windows" href="#"><b>Télécharger pour Windows</b><span>Windows 10 ou plus récent, fichier .exe</span></a>
+    <a class="bouton" id="mac" href="#"><b>Télécharger pour Mac</b><span>Processeurs Apple et Intel, fichier .dmg</span></a>
+  </div>
+  <p class="version" id="version" hidden></p>
+
+  <section>
+    <h2>Première ouverture</h2>
+    <p>L'application n'est pas signée par un éditeur reconnu : le système affiche donc une alerte la première fois. Voici comment l'ouvrir.</p>
+    <h3>Windows</h3>
+    <ol>
+      <li>Lancez le fichier téléchargé.</li>
+      <li>Si SmartScreen s'affiche, cliquez sur « Informations complémentaires », puis sur « Exécuter quand même ».</li>
+    </ol>
+    <h3>Mac</h3>
+    <ol>
+      <li>Ouvrez le fichier .dmg et faites glisser l'application dans le dossier Applications.</li>
+      <li>Ouvrez l'application, puis cliquez sur « Terminé » dans l'alerte.</li>
+      <li>Allez dans Réglages Système &gt; Confidentialité et sécurité, puis cliquez sur « Ouvrir quand même ».</li>
+      <li>Si macOS indique que l'application est endommagée, lancez dans le Terminal : <code>xattr -cr "/Applications/Salles Citadelle.app"</code></li>
+    </ol>
+  </section>
+
+  <footer id="pied">Données issues du planning du campus.</footer>
+</main>
+<script>
+// L'adresse du dépôt se déduit de celle de la page : https://COMPTE.github.io/DEPOT/
+const compte = location.hostname.split(".")[0];
+const depot = location.pathname.split("/").filter(Boolean)[0];
+const racine = `https://github.com/${compte}/${depot}`;
+
+document.getElementById("windows").href = `${racine}/releases/latest/download/Salles-Citadelle-Windows.exe`;
+document.getElementById("mac").href = `${racine}/releases/latest/download/Salles-Citadelle-Mac.dmg`;
+
+const surMac = /Mac/.test(`${navigator.platform} ${navigator.userAgent}`);
+document.getElementById(surMac ? "mac" : "windows").classList.add("conseille");
+
+const lien = document.createElement("a");
+lien.href = `${racine}/releases`;
+lien.textContent = "Toutes les versions";
+document.getElementById("pied").append(" ", lien);
+
+fetch(`https://api.github.com/repos/${compte}/${depot}/releases/latest`)
+  .then(r => r.ok ? r.json() : Promise.reject())
+  .then(release => {
+    const date = new Date(release.published_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+    const el = document.getElementById("version");
+    el.textContent = `Version ${release.tag_name.replace(/^v/, "")}, publiée le ${date}`;
+    el.hidden = false;
+  })
+  .catch(() => {});
+</script>
+</body>
+</html>

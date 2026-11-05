@@ -16,6 +16,18 @@ Il produit un `.exe` pour Windows et un `.dmg` pour Mac.
 
 Sur son poste : `npm run dist:win` sur un PC Windows, `npm run dist:mac` sur un Mac. Les fichiers arrivent dans `dist/`.
 
+## Publier une version sur la page de téléchargement
+
+Une seule fois : dans **Settings > Pages**, choisir **Deploy from a branch**, la branche `main` et le dossier `/docs`. Le dépôt doit être public.
+
+À chaque version :
+
+    git tag v1.0.0
+    git push origin v1.0.0
+
+Le workflow crée alors les installateurs et la release. La page propose toujours la dernière version.
+Si la création échoue, supprimer le tag avant de réessayer, ou utiliser un nouveau numéro.
+
 ## Première ouverture (application non signée)
 
 - **Windows :** sur l'avertissement SmartScreen, cliquer sur « Informations complémentaires », puis « Exécuter quand même ».
