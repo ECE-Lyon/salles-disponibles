@@ -1,0 +1,36 @@
+# Crée les installateurs Windows et Mac : onglet Actions du dépôt > Installateurs > Run workflow.
+# Les fichiers se téléchargent en bas de la page de l'exécution, une fois celle-ci terminée.
+name: Installateurs
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: read
+jobs:
+  construire:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            commande: dist:win
+            nom: installateur-windows
+            fichiers: dist/*.exe
+          - os: macos-latest
+            commande: dist:mac
+            nom: installateur-mac
+            fichiers: dist/*.dmg
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run ${{ matrix.commande }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.nom }}
+          path: ${{ matrix.fichiers }}
+          if-no-files-found: error

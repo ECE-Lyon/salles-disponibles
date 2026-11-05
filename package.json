@@ -1,9 +1,40 @@
 {
   "name": "salles-citadelle",
+  "productName": "Salles Citadelle",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
-  "description": "Affichage des salles disponibles du campus Citadelle",
-  "engines": { "node": ">=18" },
-  "scripts": { "start": "node server.js" }
+  "description": "Salles disponibles du campus Citadelle",
+  "author": "Salles Citadelle",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "demo": "electron . --demo",
+    "dist:win": "electron-builder --win --publish never",
+    "dist:mac": "electron-builder --mac --publish never"
+  },
+  "dependencies": {
+    "@fontsource/barlow": "^5.0.0",
+    "@fontsource/barlow-semi-condensed": "^5.0.0"
+  },
+  "devDependencies": {
+    "electron": "45.2.3",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "fr.sallescitadelle.app",
+    "directories": { "buildResources": "build", "output": "dist" },
+    "files": ["main.js", "preload.js", "src/**/*", "build/icon.png"],
+    "win": {
+      "target": "nsis",
+      "artifactName": "Salles-Citadelle-Setup-${version}.${ext}"
+    },
+    "nsis": { "oneClick": true, "perMachine": false },
+    "mac": {
+      "target": [{ "target": "dmg", "arch": "universal" }],
+      "category": "public.app-category.education",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "artifactName": "Salles-Citadelle-${version}.${ext}"
+    }
+  }
 }
