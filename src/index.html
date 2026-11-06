@@ -218,6 +218,11 @@ function formaterNomSalle(str) {
   return noAccents.replace(/[^a-zA-Z0-9]+/g, "-");
 }
 
+// Clé de comparaison : "Cita-303 B (M) (40)", "Cita-303-B" et "Cita-303B" désignent la même salle.
+function cleSalle(nom) {
+  return formaterNomSalle(nom).replace(/-/g, "").toLowerCase();
+}
+
 // Occupations d'une salle : triées, fusionnées, avec les pauses courtes absorbées.
 function fusionnerOccupations(intervalles) {
   const tries = intervalles.filter(i => i.fin > i.deb).sort((a, b) => a.deb - b.deb);
@@ -239,11 +244,10 @@ function occupationsParSalle(listeCours) {
     const deb = enMinutes(cours.deb), fin = enMinutes(cours.fin);
     if (deb === null || fin === null) continue;
     for (const nom of cours.sal || []) {
-      const id = formaterNomSalle(nom);
-      (parSalle[id] ||= []).push({ deb, fin });
+      (parSalle[cleSalle(nom)] ||= []).push({ deb, fin });
     }
   }
-  for (const id in parSalle) parSalle[id] = fusionnerOccupations(parSalle[id]);
+  for (const cle in parSalle) parSalle[cle] = fusionnerOccupations(parSalle[cle]);
   return parSalle;
 }
 
@@ -297,7 +301,7 @@ const ETAGES = [
   { titre: "4e étage", salles: [401,402,403,404,405,406].map(n => [`Cita-${n}`,`Salle ${n}`,"",String(n)]) },
   { titre: "5e étage", salles: [501,502,503,504,505,506,507].map(n => [`Cita-${n}`,`Salle ${n}`,"",String(n)]) },
 ];
-const TOUTES = ETAGES.flatMap(e => e.salles.map(s => s[0]));
+const TOUTES = ETAGES.flatMap(e => e.salles.map(s => cleSalle(s[0])));
 
 /* ---------- Projection : le sol est tourné puis écrasé, seul un chant de dalle donne le relief ---------- */
 const ANGLE = -14 * Math.PI / 180, ECRASE = .84, EPAISSEUR = 34;
@@ -393,10 +397,11 @@ function appliquerDonnees(data) {
   etatPage.occupations = occupationsParSalle(data.listeCours);
   etatPage.majOk = Date.now();
   etatPage.erreur = null;
-  const vus = Object.keys(etatPage.occupations);
-  const inconnus = vus.filter(id => !TOUTES.includes(id));
+  // Une salle du campus non reconnue s'afficherait libre à tort : on le signale à l'écran.
+  const noms = [...new Set((data.listeCours || []).flatMap(c => c.sal || []))];
+  const inconnus = noms.filter(n => !TOUTES.includes(cleSalle(n)));
   if (inconnus.length) console.warn("Salles du planning absentes de la liste :", inconnus);
-  etatPage.nomsNonReconnus = vus.length > 0 && inconnus.length === vus.length;
+  etatPage.sallesInconnues = inconnus.filter(n => /^cita/i.test(n)).map(n => n.replace(/\(.*?\)/g, "").trim());
 }
 
 async function charger() {
@@ -417,7 +422,7 @@ function dessiner() {
   ETAGES.forEach((e, i) => {
     let libresEtage = 0;
     e.salles.forEach(([id]) => {
-      const occ = frais ? (etatPage.occupations[id] || []) : null;
+      const occ = frais ? (etatPage.occupations[cleSalle(id)] || []) : null;
       const st = occ ? etatSalle(occ, now) : { etat: "inconnu" };
       if (st.etat === "libre") { libres++; libresEtage++; }
       if (st.etat === "occupee") occupees++;
@@ -458,7 +463,7 @@ function dessiner() {
   const message = !etatPage.occupations ? (etatPage.erreur ? "Planning injoignable. Vérifiez la connexion : nouvel essai dans une minute." : "")
     : !frais ? "Planning injoignable depuis plus de 5 minutes : disponibilités masquées."
     : etatPage.erreur ? "Planning injoignable : dernières données connues affichées."
-    : etatPage.nomsNonReconnus ? "Noms de salles du planning non reconnus : disponibilités peu fiables."
+    : etatPage.sallesInconnues?.length ? `Salle du planning non reconnue, à vérifier : ${etatPage.sallesInconnues.slice(0, 3).join(", ")}${etatPage.sallesInconnues.length > 3 ? "…" : ""}`
     : "";
   alerte.textContent = message;
   alerte.hidden = !message;
